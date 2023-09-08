@@ -7,7 +7,7 @@ const port = 3000;
 const validation = require('./validation'); // Import the validation module
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/mydb', {
+mongoose.connect('mongodb://0.0.0.0:27017/mydb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -77,7 +77,7 @@ app.post('/login', async (req, res) => {
     }
 
     // Compare the provided password with the hashed password stored in the database
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.hash(compare(password, user.password),10);
     if (!passwordMatch) {
       passwordError = 'Email or password is incorrect';
       return res.render('login', { passwordError });
@@ -85,7 +85,7 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error(error);
     // Handle database error
-    return res.status(500).send('Internal Server Error');
+    return res.status(500).send(' Server Error');
   }
 
   // Redirect to the home page on successful login
@@ -129,7 +129,7 @@ app.post('/signin', async (req, res) => {
   } catch (error) {
     console.error(error);
     // Handle database error
-    return res.status(500).send('Internal Server Error');
+    return res.status(500).send(' Server Error');
   }
 
   // Redirect to the home page on successful sign-in

@@ -1,13 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt'); // For password hashing
 const app = express();
 const port = 3000;
 const validation = require('./validation'); // Import the validation module
 
 // Connect to MongoDB
-mongoose.connect('mongodb://0.0.0.0:27017/mydb', {
+mongoose.connect('mongodb://127.0.0.1:27017/mydb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -46,6 +45,19 @@ app.get('/signin', (req, res) => {
   res.render('signin');
 });
 
+app.get('/admin', async (req, res) => {
+  try {
+    // Fetch all documents from the database
+    const user = await User.find();
+
+    // Render the EJS template and pass the data
+    res.render('admin', { user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching users');
+  }
+});
+
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -76,16 +88,14 @@ app.post('/login', async (req, res) => {
       return res.render('login', { emailError });
     }
 
-    // Compare the provided password with the hashed password stored in the database
-    const passwordMatch = await bcrypt.hash(compare(password, user.password),10);
-    if (!passwordMatch) {
+    if (password!=user.password) {
       passwordError = 'Email or password is incorrect';
       return res.render('login', { passwordError });
     }
   } catch (error) {
     console.error(error);
     // Handle database error
-    return res.status(500).send(' Server Error');
+    return res.status(500).send('Internal Server Error');
   }
 
   // Redirect to the home page on successful login
@@ -122,9 +132,8 @@ app.post('/signin', async (req, res) => {
       return res.render('signin', { emailError });
     }
 
-    // Hash the password before saving it to the database
-    const hashedPassword = await bcrypt.hash(password, 10); // Use bcrypt for hashing
-    const newUser = new User({ email: email, password: hashedPassword });
+    // password before saving it to the database
+    const newUser = new User({ email: email, password: password });
     await newUser.save();
   } catch (error) {
     console.error(error);
